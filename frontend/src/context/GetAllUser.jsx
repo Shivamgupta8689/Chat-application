@@ -12,7 +12,7 @@ const GetAllUser = () => {
             try {
                 const token = Cookies.get("jwt")
                 const response = await API.get("/api/user/getUserProfile", {
-                    Credentials: "include",
+                    withCredentials: true,
                     headers: {
                         Authorization: `Bearer ${token}`,
                     }
