@@ -13,13 +13,15 @@ dotenv.config();
 ToConnect();
 
 
-app.use(
-  cors({
+app.use(cors({
     origin: [process.env.ORIGIN],
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
-  })
-);
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
 
 
 app.use(express.json());
