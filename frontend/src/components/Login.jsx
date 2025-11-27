@@ -14,27 +14,37 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const onSubmit = async (data) => {
-    const userInfo = {
-      email: data.email,
-      password: data.password,
-    };
-    try {
-      const { data: response } = await API.post("/api/user/login", userInfo);
-      if (response?.user) {
-        toast.success("Login Successful!");
-        localStorage.setItem("messenger", JSON.stringify(response.user));
-        setAuthUser(response.user);
-      } else {
-        toast.error("Invalid login response");
-      }
-    } catch (error) {
-      if(error.response){
-        toast.error("Error:" + error.response.data.message)
-      } else {
-        toast.error("Unable to login. Please try again.");
-      }
+  const userInfo = {
+    email: data.email,
+    password: data.password,
+  };
+
+  try {
+    const { data: response } = await API.post("/api/user/login", userInfo);
+
+    if (response?.user && response?.token) {
+
+      const formattedUser = {
+        user: response.user,   // wrapper added
+        token: response.token, // include token
+      };
+
+      localStorage.setItem("messenger", JSON.stringify(formattedUser));
+      setAuthUser(formattedUser);
+
+      toast.success("Login Successful!");
+    } else {
+      toast.error("Invalid login response");
+    }
+  } catch (error) {
+    if (error.response) {
+      toast.error("Error: " + error.response.data.message);
+    } else {
+      toast.error("Unable to login. Please try again.");
     }
   }
+}
+
   return (
     <div>
       <form action="" className="border-black " onSubmit={handleSubmit(onSubmit)}>
