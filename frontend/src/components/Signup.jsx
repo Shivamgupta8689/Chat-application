@@ -53,9 +53,6 @@ const Signup = () => {
 } else {
   toast.error("Signup response missing user data");
 }
- else {
-        toast.error("Signup response missing user data");
-      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     }
