@@ -14,7 +14,7 @@ ToConnect();
 
 
 app.use(cors({
-    origin: [process.env.ORIGIN],
+    origin: process.env.ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
@@ -34,5 +34,5 @@ app.use("/api/message", messageRoute);
 // Server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
-  console.log(` Server running on ${PORT}`);
+  console.log(`Server running on ${PORT}`);
 });
