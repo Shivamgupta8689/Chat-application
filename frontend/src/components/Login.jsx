@@ -1,6 +1,5 @@
 import React from 'react'
 import { useForm } from "react-hook-form"
-import axios from "axios"
 import { useAuth } from '../context/Authprovider'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -18,20 +17,22 @@ const Login = () => {
       email: data.email,
       password: data.password,
     };
-    await API.post("/api/user/login", userInfo)
-    .then((response)=>{
-      if(response.data){
-        toast.success("Login Successful!")
+    try {
+      const { data: response } = await API.post("/api/user/login", userInfo);
+      if (response?.user) {
+        toast.success("Login Successful!");
+        localStorage.setItem("messenger", JSON.stringify(response.user));
+        setAuthUser(response.user);
+      } else {
+        toast.error("Invalid login response");
       }
-
-      localStorage.setItem("messenger",JSON.stringify(response.data))
-      setAuthUser(response.data)
-    })
-    .catch((error)=>{
+    } catch (error) {
       if(error.response){
         toast.error("Error:" + error.response.data.message)
+      } else {
+        toast.error("Unable to login. Please try again.");
       }
-    })
+    }
   }
   return (
     <div>
