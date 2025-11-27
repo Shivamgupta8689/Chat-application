@@ -1,6 +1,6 @@
-
-import React, { useEffect, useState } from "react";
+import React from 'react'
 import { useForm } from "react-hook-form"
+import axios from "axios"
 import { useAuth } from '../context/Authprovider'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -14,37 +14,25 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const onSubmit = async (data) => {
-  const userInfo = {
-    email: data.email,
-    password: data.password,
-  };
+    const userInfo = {
+      email: data.email,
+      password: data.password,
+    };
+    await API.post("/api/user/login", userInfo)
+    .then((response)=>{
+      if(response.data){
+        toast.success("Login Successful!")
+      }
 
-  try {
-    const { data: response } = await API.post("/api/user/login", userInfo);
-
-    if (response?.user && response?.token) {
-
-      const formattedUser = {
-        user: response.user,   // wrapper added
-        token: response.token, // include token
-      };
-
-      localStorage.setItem("messenger", JSON.stringify(formattedUser));
-      setAuthUser(formattedUser);
-
-      toast.success("Login Successful!");
-    } else {
-      toast.error("Invalid login response");
-    }
-  } catch (error) {
-    if (error.response) {
-      toast.error("Error: " + error.response.data.message);
-    } else {
-      toast.error("Unable to login. Please try again.");
-    }
+      localStorage.setItem("messenger",JSON.stringify(response.data))
+      setAuthUser(response.data)
+    })
+    .catch((error)=>{
+      if(error.response){
+        toast.error("Error:" + error.response.data.message)
+      }
+    })
   }
-}
-
   return (
     <div>
       <form action="" className="border-black " onSubmit={handleSubmit(onSubmit)}>
