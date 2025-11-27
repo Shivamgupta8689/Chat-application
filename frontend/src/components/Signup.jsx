@@ -38,11 +38,22 @@ const Signup = () => {
       const { data: response } = await API.post("/api/user/signup", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      if (response?.user) {
-        toast.success("Signup successful!");
-        localStorage.setItem("messenger", JSON.stringify(response.user));
-        setAuthUser(response.user);
-      } else {
+      if (response?.user && response?.token) {
+
+  const formattedUser = {
+    user: response.user,
+    token: response.token
+  };
+
+  toast.success("Signup successful!");
+
+  localStorage.setItem("messenger", JSON.stringify(formattedUser));
+  setAuthUser(formattedUser);
+
+} else {
+  toast.error("Signup response missing user data");
+}
+ else {
         toast.error("Signup response missing user data");
       }
     } catch (error) {
