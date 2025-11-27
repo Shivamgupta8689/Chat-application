@@ -34,17 +34,20 @@ const Signup = () => {
     formData.append("confirmpassword", data.confirmpassword);
     formData.append("image", image); 
 
-    await API.post("/api/user/signup", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    })
-      .then((response) => {
-        toast.success("Signup Successful! You can now login");
-        localStorage.setItem("messenger", JSON.stringify(response.data));
-        setAuthUser(response.data);
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || "Something went wrong");
+   try {
+      const { data: response } = await API.post("/api/user/signup", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
+      if (response?.user) {
+        toast.success("Signup successful!");
+        localStorage.setItem("messenger", JSON.stringify(response.user));
+        setAuthUser(response.user);
+      } else {
+        toast.error("Signup response missing user data");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
   }
 
   return (
