@@ -1,31 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import API from '../utils/axiosInstance';
+import { useAuth } from './Authprovider';
 
 const GetAllUser = () => {
     const [allUsers, setAllUser] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { authUser, setAuthUser } = useAuth();
     
     useEffect(() => {
+        // Only fetch if user is authenticated
+        if (!authUser?.user?._id) {
+            return;
+        }
+
         const getUser = async () => {
             setLoading(true);
             try {
                 const response = await API.get("/api/user/getUserProfile");
                 
-                setAllUser(response.data.filteredUser || []);
+                if (response.data && response.data.filteredUser) {
+                    setAllUser(response.data.filteredUser);
+                }
             } catch (error) {
-                console.error("Error in GetAllUser:", error);
-                
-                // 401 error pe login redirect
-                if (error.response?.status === 401) {
-                    localStorage.removeItem("messenger");
-                    window.location.href = '/login';
+                // More detailed error logging
+                if (error.response) {
+                    console.error("Error in GetAllUser - Status:", error.response.status);
+                    console.error("Error in GetAllUser - Data:", error.response.data);
+                    
+                    // Only redirect on 401 if it's a real authentication failure
+                    if (error.response.status === 401) {
+                        // Double check if user is still in localStorage
+                        const storedAuth = localStorage.getItem("messenger");
+                        if (!storedAuth) {
+                            // User was logged out - redirect
+                            setAuthUser(null);
+                            setTimeout(() => {
+                                window.location.href = '/login';
+                            }, 500);
+                        } else {
+                            // Cookie might not be sent - log but don't redirect
+                            // This could be a CORS/credentials issue
+                            console.warn("401 error but user is still in localStorage. Possible cookie issue.");
+                            // Don't redirect - let user try again or check network
+                        }
+                    }
+                } else if (error.request) {
+                    // Request was made but no response received
+                    console.error("Error in GetAllUser - No response:", error.message);
+                } else {
+                    // Something else happened
+                    console.error("Error in GetAllUser:", error.message);
                 }
             } finally {
                 setLoading(false);
             }
         };
-        getUser();
-    }, []);
+        
+        // Delay to ensure cookie is properly set after login
+        // Increased delay for production cross-origin scenarios
+        const timer = setTimeout(() => {
+            getUser();
+        }, 500);
+        
+        return () => clearTimeout(timer);
+    }, [authUser?.user?._id, setAuthUser]);
     
     return [allUsers, loading];
 };
