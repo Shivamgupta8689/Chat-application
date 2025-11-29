@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Left from './left/Left'
 import Right from './right/Right'
 import Logout from './left1/Logout'
@@ -10,7 +9,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import ForgotPassword from './components/ForgotPassword'
 
 function App() {
-  const {authUser, setAuthUser} = useAuth();
+  const {authUser} = useAuth();
 
   return (
     <>
@@ -18,20 +17,20 @@ function App() {
       <Route
         path="/"
         element={
-          authUser ? (
+          authUser?.user ? (
             <div className="flex h-screen">
               <Logout />
               <Left />
               <Right />
             </div>
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/login" replace />
           )
         }
       />
-      <Route path="/login" element={authUser ? <Navigate to="/" /> : <Login />} />
-      <Route path="/signup" element={authUser ? <Navigate to="/" /> : <Signup />} />
-      <Route path="/forgotPassword" element={authUser ? <Navigate to="/" /> : <ForgotPassword/>} />
+      <Route path="/login" element={authUser?.user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/signup" element={authUser?.user ? <Navigate to="/" replace /> : <Signup />} />
+      <Route path="/forgotPassword" element={authUser?.user ? <Navigate to="/" replace /> : <ForgotPassword/>} />
     </Routes>
     <Toaster />
 

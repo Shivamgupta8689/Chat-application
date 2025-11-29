@@ -5,12 +5,16 @@ export const createTokenSaveCookie = (userId, res) => {
         expiresIn: "5d",
     });
 
+    // Production-ready cookie settings for cross-origin (Vercel + Render)
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     res.cookie("jwt", token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: isProduction, // Only secure in production (HTTPS required)
+        sameSite: isProduction ? "None" : "Lax", // None for cross-origin in production
         path: "/",
-        maxAge: 5 * 24 * 60 * 60 * 1000 // 5 days
+        maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+        // Don't set domain - let browser handle it for cross-origin
     });
 
     return token;

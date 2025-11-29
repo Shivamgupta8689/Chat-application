@@ -39,9 +39,12 @@ const Signup = () => {
     })
       .then((response) => {
         toast.success("Signup Successful! You can now login");
-        localStorage.setItem("messenger", JSON.stringify
-        (response.data));
-        setAuthUser(response.data);
+        // Match the structure used in Login component
+        const userData = {
+          user: response.data.user
+        };
+        localStorage.setItem("messenger", JSON.stringify(userData));
+        setAuthUser(userData);
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || "Something went wrong");

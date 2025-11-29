@@ -41,8 +41,8 @@ const Nochat = () => {
     <div className='flex flex-col h-screen items-center justify-center'>
       <h1 className='text-center text-lg font-bold'>No conversation selected</h1>
       <p className='text-gray-400'>Select a conversation to start chatting</p>
-      {authUser?.name && (
-        <p className='mt-2 text-green-400'>Welcome, {authUser.name}!</p>
+      {authUser?.user?.name && (
+        <p className='mt-2 text-green-400'>Welcome, {authUser.user.name}!</p>
       )}
     </div>
   )

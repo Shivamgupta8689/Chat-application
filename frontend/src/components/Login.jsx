@@ -1,13 +1,13 @@
 import React from 'react'
 import { useForm } from "react-hook-form"
-import axios from "axios"
 import { useAuth } from '../context/Authprovider'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import API from '../utils/axiosInstance'
 
 const Login = () => {
   const {authUser, setAuthUser} = useAuth()
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -18,20 +18,32 @@ const Login = () => {
       email: data.email,
       password: data.password,
     };
-    await API.post("/api/user/login", userInfo)
-    .then((response)=>{
-      if(response.data){
+    try {
+      const response = await API.post("/api/user/login", userInfo)
+      if(response.data && response.data.user){
         toast.success("Login Successful!")
+        
+        // Save user data to localStorage - match the structure expected by AuthProvider
+        const userData = {
+          user: response.data.user
+        }
+        localStorage.setItem("messenger", JSON.stringify(userData))
+        setAuthUser(userData)
+        
+        // Small delay to ensure state is updated before navigation
+        setTimeout(() => {
+          navigate("/", { replace: true })
+        }, 100)
+      } else {
+        toast.error("Invalid response from server")
       }
-
-      localStorage.setItem("messenger",JSON.stringify(response.data))
-      setAuthUser(response.data)
-    })
-    .catch((error)=>{
+    } catch (error) {
       if(error.response){
-        toast.error("Error:" + error.response.data.message)
+        toast.error("Error: " + (error.response.data?.message || "Login failed"))
+      } else {
+        toast.error("Login failed. Please check your connection.")
       }
-    })
+    }
   }
   return (
     <div>
