@@ -9,13 +9,13 @@ export default defineConfig({
   ],
   server:{
     port:4001,
-    proxy:{
+    // Proxy only for development - not used in production
+    proxy: process.env.NODE_ENV === 'development' ? {
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
       }
-    }
-
+    } : undefined
   }
   
 })

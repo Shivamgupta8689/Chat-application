@@ -13,8 +13,13 @@ export const SocketProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const { authUser } = useAuth();
 
-  const backendURL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+  if (!backendURL) {
+    console.error(
+      "VITE_BACKEND_URL is not defined. Configure it in your deployment environment."
+    );
+  }
 
   useEffect(() => {
     const userId = authUser?.user?._id;
