@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import API from '../utils/axiosInstance';
 import { useAuth } from './Authprovider';
 
-export const useGetAllUsers = () => {
+export const GetAllUser = () => {
     const [allUsers, setAllUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const { authUser, setAuthUser } = useAuth();
