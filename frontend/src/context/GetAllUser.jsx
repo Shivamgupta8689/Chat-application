@@ -8,7 +8,10 @@ const GetAllUser = () => {
     const { authUser, setAuthUser } = useAuth();
 
     useEffect(() => {
-        if (!authUser?._id) return;
+        // Fix: Check authUser.user._id instead of authUser._id
+        if (!authUser?.user?._id) {
+            return;
+        }
 
         const getUser = async (retryCount = 0) => {
             setLoading(true);
@@ -17,11 +20,14 @@ const GetAllUser = () => {
                 
                 if (response.data?.filteredUser) {
                     setAllUsers(response.data.filteredUser);
+                } else {
+                    console.warn("No filteredUser in response:", response.data);
                 }
 
             } catch (error) {
+                console.error("Error fetching users:", error);
+                
                 if (error.response?.status === 401) {
-
                     const stored = localStorage.getItem("messenger");
 
                     if (!stored) {
@@ -38,6 +44,9 @@ const GetAllUser = () => {
                     localStorage.removeItem("messenger");
                     setAuthUser(null);
                     window.location.href = "/login";
+                } else {
+                    // Log other errors for debugging
+                    console.error("Failed to fetch users:", error.response?.data || error.message);
                 }
 
             } finally {
@@ -48,7 +57,7 @@ const GetAllUser = () => {
         const timer = setTimeout(() => getUser(), 500);
         return () => clearTimeout(timer);
 
-    }, [authUser?._id, setAuthUser]);
+    }, [authUser?.user?._id, setAuthUser]);
 
     return [allUsers, loading];
 };
