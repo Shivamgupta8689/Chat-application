@@ -10,6 +10,11 @@ const secureRoute = async (req,res,next)=>{
 
         const token = req.cookies.jwt;
         if(!token){
+            // Log for debugging (in production, you might want to remove this)
+            if (process.env.NODE_ENV === 'development') {
+                console.log("No JWT cookie found. Cookies received:", Object.keys(req.cookies));
+                console.log("Request origin:", req.headers.origin);
+            }
             return res.status(401).json({message: "Not authorized - No token provided"})
         }
         

@@ -85,7 +85,25 @@ export const userLogin = async (req,res)=>{
 
 export const userLogout = async (req,res) =>{
     try{
-        res.clearCookie('jwt');
+        // Clear cookie with same settings as when it was set
+        const isProduction = process.env.NODE_ENV === 'production' || 
+                            process.env.RENDER === 'true' || 
+                            process.env.VERCEL === '1';
+        
+        const cookieOptions = {
+            httpOnly: true,
+            path: "/",
+        };
+
+        if (isProduction) {
+            cookieOptions.secure = true;
+            cookieOptions.sameSite = "None";
+        } else {
+            cookieOptions.secure = false;
+            cookieOptions.sameSite = "Lax";
+        }
+
+        res.clearCookie('jwt', cookieOptions);
         return res.status(200).json({message:"user Logout Successfully"})
     }
     catch(error){

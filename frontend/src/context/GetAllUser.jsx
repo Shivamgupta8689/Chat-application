@@ -13,7 +13,7 @@ const GetAllUser = () => {
             return;
         }
 
-        const getUser = async () => {
+        const getUser = async (retryCount = 0) => {
             setLoading(true);
             try {
                 const response = await API.get("/api/user/getUserProfile");
@@ -27,22 +27,35 @@ const GetAllUser = () => {
                     console.error("Error in GetAllUser - Status:", error.response.status);
                     console.error("Error in GetAllUser - Data:", error.response.data);
                     
-                    // Only redirect on 401 if it's a real authentication failure
+                    // Handle 401 Unauthorized
                     if (error.response.status === 401) {
-                        // Double check if user is still in localStorage
                         const storedAuth = localStorage.getItem("messenger");
+                        
+                        // If no stored auth, user needs to login
                         if (!storedAuth) {
-                            // User was logged out - redirect
                             setAuthUser(null);
                             setTimeout(() => {
                                 window.location.href = '/login';
                             }, 500);
-                        } else {
-                            // Cookie might not be sent - log but don't redirect
-                            // This could be a CORS/credentials issue
-                            console.warn("401 error but user is still in localStorage. Possible cookie issue.");
-                            // Don't redirect - let user try again or check network
+                            return;
                         }
+                        
+                        // Cookie issue - retry once after a delay
+                        if (retryCount === 0) {
+                            console.warn("401 error - retrying after delay (possible cookie sync issue)");
+                            setTimeout(() => {
+                                getUser(1);
+                            }, 1000);
+                            return;
+                        }
+                        
+                        // After retry, if still 401, clear auth and redirect
+                        console.error("401 error persists after retry. Clearing auth and redirecting to login.");
+                        localStorage.removeItem("messenger");
+                        setAuthUser(null);
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 500);
                     }
                 } else if (error.request) {
                     // Request was made but no response received

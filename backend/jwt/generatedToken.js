@@ -5,17 +5,30 @@ export const createTokenSaveCookie = (userId, res) => {
         expiresIn: "5d",
     });
 
-    // Production-ready cookie settings for cross-origin (Vercel + Render)
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Detect production environment - check multiple indicators
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                        process.env.RENDER === 'true' || 
+                        process.env.VERCEL === '1';
     
-    res.cookie("jwt", token, {
+    // For cross-origin requests (Vercel frontend + Render backend)
+    // sameSite: "None" REQUIRES secure: true
+    const cookieOptions = {
         httpOnly: true,
-        secure: isProduction, // Only secure in production (HTTPS required)
-        sameSite: isProduction ? "None" : "Lax", // None for cross-origin in production
         path: "/",
         maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-        // Don't set domain - let browser handle it for cross-origin
-    });
+    };
+
+    if (isProduction) {
+        // Production: Cross-origin requires SameSite=None and Secure=true
+        cookieOptions.secure = true;
+        cookieOptions.sameSite = "None";
+    } else {
+        // Development: Can use Lax for same-origin
+        cookieOptions.secure = false;
+        cookieOptions.sameSite = "Lax";
+    }
+
+    res.cookie("jwt", token, cookieOptions);
 
     return token;
 };
