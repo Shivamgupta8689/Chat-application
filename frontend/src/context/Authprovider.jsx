@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
-export const Authprovider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
+
     const getInitialUser = () => {
         try {
             const storedUser = localStorage.getItem("messenger");
@@ -15,6 +16,7 @@ export const Authprovider = ({ children }) => {
     };
 
     const [authUser, setAuthUser] = useState(getInitialUser());
+
     useEffect(() => {
         if (authUser) {
             localStorage.setItem("messenger", JSON.stringify(authUser));

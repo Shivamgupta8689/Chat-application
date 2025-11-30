@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form"
-import axios from "axios"
-import { useAuth } from '../context/Authprovider'
-import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import API from '../utils/axiosInstance'
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import API from "../utils/axiosInstance";
+import { useAuth } from "../context/Authprovider";
 
 const Signup = () => {
-  const { authUser, setAuthUser } = useAuth()
-  const [image, setImage] = useState(null)
+  const { setAuthUser } = useAuth();
+  const [image, setImage] = useState(null);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -17,112 +17,110 @@ const Signup = () => {
     formState: { errors },
   } = useForm();
 
-  const password = watch("password", "");
-  const confirmpassword = watch("confirmpassword", "");
-
-  const validatePasswordMatch = (value) => {
-    return value === password || "Password and confirm password don't match"
-  }
+  const password = watch("password");
+  const validatePasswordMatch = (value) =>
+    value === password || "Passwords do not match";
 
   const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("confirmpassword", data.confirmpassword);
+      formData.append("image", image);
 
-    // ⭐ FormData banate hain kyunki isme image bhejni hai
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("email", data.email);
-    formData.append("password", data.password);
-    formData.append("confirmpassword", data.confirmpassword);
-    formData.append("image", image); 
-
-  await API.post("/api/user/signup", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    })
-      .then((response) => {
-        toast.success("Signup Successful! You can now login");
-        // Match the structure used in Login component
-        const userData = {
-          user: response.data.user
-        };
-        localStorage.setItem("messenger", JSON.stringify(userData));
-        setAuthUser(userData);
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || "Something went wrong");
+      const response = await API.post("/api/user/signup", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-  }
+
+      toast.success("Signup successful! Please login.");
+
+      // ❗ DO NOT auto-login after signup
+      // Just redirect to login page
+      setTimeout(() => navigate("/login", { replace: true }), 500);
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Signup failed");
+    }
+  };
 
   return (
-    <>
-      <form className="border-black " onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex justify-center items-center h-screen">
-          <fieldset className="fieldset bg-base-200 border-black rounded-box w-[400px] border p-4">
-            <h1 className="text-xl text-center w-[100%]">Sign Up</h1>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="flex justify-center items-center h-screen">
+        <fieldset className="fieldset bg-base-200 border rounded-box w-[400px] p-4">
+          <h1 className="text-xl text-center font-bold">Sign Up</h1>
 
-            <label className="label font-bold text-sm">Name</label>
-            <input type="text" className="input input-bordered w-full"
-              placeholder="Enter your name"
-              {...register("name", { required: true })}
+          <label className="label font-bold">Name</label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            {...register("name", { required: true })}
+          />
+          {errors.name && <span className="text-red-600">Required</span>}
+
+          <label className="label font-bold">Email</label>
+          <input
+            type="email"
+            className="input input-bordered w-full"
+            {...register("email", { required: true })}
+          />
+          {errors.email && <span className="text-red-600">Required</span>}
+
+          <label className="label font-bold">Password</label>
+          <input
+            type="password"
+            className="input input-bordered w-full"
+            {...register("password", { required: true })}
+          />
+          {errors.password && <span className="text-red-600">Required</span>}
+
+          <label className="label font-bold">Confirm Password</label>
+          <input
+            type="password"
+            className="input input-bordered w-full"
+            {...register("confirmpassword", {
+              required: true,
+              validate: validatePasswordMatch,
+            })}
+          />
+          {errors.confirmpassword && (
+            <span className="text-red-600">
+              {errors.confirmpassword.message}
+            </span>
+          )}
+
+          <label className="label font-bold mt-2">Profile Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="file-input file-input-bordered w-full"
+            onChange={(e) => setImage(e.target.files[0])}
+          />
+
+          {image && (
+            <img
+              src={URL.createObjectURL(image)}
+              className="w-20 h-20 mt-2 rounded-full object-cover"
             />
-            {errors.name && <span className='text-red-600'>**This field is required**</span>}
+          )}
 
-            <label className="label font-bold text-sm">Email</label>
-            <input type="email" className="input input-bordered w-full"
-              placeholder="Enter Email"
-              {...register("email", { required: true })}
-            />
-            {errors.email && <span className='text-red-600'>**This field is required**</span>}
+          <input
+            type="submit"
+            value="Sign Up"
+            className="btn btn-primary w-full mt-4"
+          />
 
-            <label className="label font-bold text-sm">Password</label>
-            <input type="password" className="input input-bordered w-full"
-              placeholder="Enter Password"
-              {...register("password", { required: true })}
-            />
-            {errors.password && <span className='text-red-600'>**This field is required**</span>}
+          <p className="text-center mt-3 text-sm">
+            Already have an account?
+            <Link to="/login" className="underline text-blue-500 ml-1">
+              Login
+            </Link>
+          </p>
+        </fieldset>
+      </div>
+    </form>
+  );
+};
 
-            <label className="label font-bold text-sm">Confirm Password</label>
-            <input type="password" className="input input-bordered w-full"
-              placeholder="Confirm Password"
-              {...register("confirmpassword", {
-                required: true,
-                validate: validatePasswordMatch
-              })}
-            />
-            {errors.confirmpassword && (
-              <span className='text-red-600'>{errors.confirmpassword.message}</span>
-            )}
-
-            {/* ⭐ Image Upload Field */}
-            <label className="label font-bold text-sm mt-2">Profile Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="file-input file-input-bordered w-full"
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-
-            {/* Optional Preview */}
-            {image && (
-              <img
-                src={URL.createObjectURL(image)}
-                alt="preview"
-                className="w-20 h-20 mt-2 rounded-full object-cover"
-              />
-            )}
-
-            <input type="submit" value="signup"
-              className='text-white w-full rounded-lg py-2 btn btn-primary text-m mt-4' />
-
-            <p className="text-center mt-3">
-              Already have an account?
-              <Link to={"/login"} className='text-blue-500 underline cursor-pointer ml-1 text-sm'>
-                Login
-              </Link>
-            </p>
-          </fieldset>
-        </div>
-      </form>
-    </>
-  )
-}
-
-export default Signup
+export default Signup;
