@@ -34,13 +34,25 @@ API.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Log detailed error info in development
-    if (import.meta.env.DEV && error.response) {
+    // Log detailed error info (both dev and production for debugging)
+    if (error.response) {
       console.error("API Error:", {
         status: error.response.status,
+        statusText: error.response.statusText,
         url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL + error.config?.url,
         message: error.response.data?.message,
+        data: error.response.data,
       });
+    } else if (error.request) {
+      console.error("API Request Error - No response received:", {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        message: "Network error or server not responding",
+      });
+    } else {
+      console.error("API Error:", error.message);
     }
     return Promise.reject(error);
   }
